@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-qq-pq3$c5wd-)&3sf$elt4rh*e&lcjaubbq+ah^4s^u$2plylt
 DEBUG = True
 
 ALLOWED_HOSTS = ['*'] 
-                #'localhost', '127.0.0.1:4040','https://f447-177-128-97-18.ngrok-free.app
+                #'localhost', '127.0.0.1:4040','https://f447-177-128-97-18.ngrok-free.app '127.0.0.1', '0.0.0.0', 'localhost', '127.0.0.1:4040', 'https://4ac8-187-111-202-179.ngrok-free.app'
 
 
 # Application definition
@@ -106,9 +106,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 

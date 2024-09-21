@@ -2,12 +2,17 @@ import json
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
+import openai
 
-WHATSAPP_API_URL = 'https://graph.facebook.com/v16.0/+554184209376/messages'
-ACCESS_TOKEN = 'EAB1oK7ZAIcN8BO45PZBBwwwvfIbkLw38tFzN1TNsFmL1IzvlgdDrYIetVQiwrcZCHPKeMsLQrqHLLuBkwdMalfjemDApPvcqmMIuBIVZBhlbi0ZCm7KcF9iofeQa7fi41jSiZBAkWsJSnkznxifZC378lz4v5UoaxSo0fQYpbrPjy9P0ApoF19dztYgDlEurkd4TliIZA0WMRlznAVU3XjI0JMIznRgZD'
-VERIFY_TOKEN = 'jdsajdbvhjbsdhbsdfvafvf'
+WHATSAPP_API_URL = 'https://graph.facebook.com/v20.0/418446388022428/messages'
+ACCESS_TOKEN = 'EAB1oK7ZAIcN8BOyxTE77as9qqFeZA4XSzXzTRnVUNZBrurQqjkoZAmwylf28Vyu8aoLyTF0Mh597VVmLK7gD1smyvEs4fdefhZAJKKk8MfNbdp6FNEo1ZBygA078d8R59EqZAvBK73h9PcSQGBO9ZBaUCvh9ZAZAlK0XQRDghAPl3ZAPUxyNNZA6op51GKwZBOZCKx9FVq9lUZD'
+VERIFY_TOKEN = 'hsdfbvhbsd2458@hvb'
 
 #python manage.py runserver 0.0.0.0:8000 INICIAR O SERVIDOR
+# Configure sua chave de API da OpenAI
+OPENAI_API_KEY = 'sk-sWRHirl0JFEqwGx3CkHimusnbptw10qbKMOhbiEPAlT3BlbkFJdJE-EEFtw-1Co6wJIYd0pJodIFfXXzhmASjT0OoCUA'
+openai.api_key = OPENAI_API_KEY
+
 @csrf_exempt
 def webhook(request):
     if request.method == 'GET':
@@ -30,18 +35,16 @@ def webhook(request):
 
             # Exibe a mensagem recebida no terminal
             print(f"Mensagem recebida de {from_number}: {message_body}")
-            
-            # Lógica para responder automaticamente às mensagens
-            if message_body.strip().lower() == "estou testando a api do whatsapp":
-                response_message = "Sua mensagem foi recebida com sucesso! Como posso ajudar?"
-            else:
-                response_message = f"Mensagem recebida: {message_body}"
+
+            # Enviar a mensagem para o ChatGPT e obter a resposta
+            response_message = get_chatgpt_response(message_body)
 
             # Enviar resposta automática
             send_message(from_number, response_message)
 
             return JsonResponse({'status': 'success'}, status=200)
         except (KeyError, IndexError) as e:
+            print(f"Erro ao processar a mensagem: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
     return JsonResponse({'status': 'Method not allowed'}, status=405)
@@ -68,3 +71,29 @@ def send_message(to_number, message):
     else:
         print(f"Erro ao enviar mensagem para {to_number}: {response.text}")
         return {'status': 'error', 'message': response.text}
+
+
+def get_chatgpt_response(user_message):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # Alterado para gpt-3.5-turbo
+            messages=[
+                {"role": "system", "content": "Você é um assistente útil."},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=150,
+            temperature=0.7,
+        )
+
+        chat_response = response.choices[0].message['content'].strip()
+        return chat_response
+
+    except openai.error.AuthenticationError:
+        print("Erro de autenticação com a API da OpenAI. Verifique sua chave de API.")
+        return "Desculpe, ocorreu um erro de autenticação."
+    except openai.error.PermissionError:
+        print("Permissão negada para acessar o modelo especificado.")
+        return "Desculpe, não tenho permissão para acessar o modelo solicitado."
+    except Exception as e:
+        print(f"Erro ao obter resposta do ChatGPT: {e}")
+        return "Desculpe, ocorreu um erro ao processar sua solicitação."
