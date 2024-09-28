@@ -10,7 +10,7 @@ VERIFY_TOKEN = 'hsdfbvhbsd2458@hvb'
 
 #python manage.py runserver 0.0.0.0:8000 INICIAR O SERVIDOR
 # Configure sua chave de API da OpenAI
-OPENAI_API_KEY = 'sk-sWRHirl0JFEqwGx3CkHimusnbptw10qbKMOhbiEPAlT3BlbkFJdJE-EEFtw-1Co6wJIYd0pJodIFfXXzhmASjT0OoCUA'
+OPENAI_API_KEY = 'sk-svcacct-za6uPwnTgcLBhsFQEMastiWByHViVQEaWERWpNtSkVmMTMKmxBDz1dCiSUy3mlyGfT3BlbkFJ-6C-GkvXVeRnC6aCXVP7yDf3xc_kjNsKQwaBByej4oGMnrJ7TfqJIY3_dz9jUQpLgA'
 openai.api_key = OPENAI_API_KEY
 
 @csrf_exempt
@@ -76,7 +76,7 @@ def send_message(to_number, message):
 def get_chatgpt_response(user_message):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # Alterado para gpt-3.5-turbo
+            model="gpt-4.0-",  # Alterado para gpt-3.5-turbo
             messages=[
                 {"role": "system", "content": "Você é um assistente útil."},
                 {"role": "user", "content": user_message}
