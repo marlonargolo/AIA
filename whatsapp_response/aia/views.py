@@ -14,19 +14,44 @@ VERIFY_TOKEN = 'hsdfbvhbsd2458@hvb'
 client = OpenAI(api_key='sk-svcacct-za6uPwnTgcLBhsFQEMastiWByHViVQEaWERWpNtSkVmMTMKmxBDz1dCiSUy3mlyGfT3BlbkFJ-6C-GkvXVeRnC6aCXVP7yDf3xc_kjNsKQwaBByej4oGMnrJ7TfqJIY3_dz9jUQpLgA')
 OPENAI_API_KEY = 'sk-svcacct-za6uPwnTgcLBhsFQEMastiWByHViVQEaWERWpNtSkVmMTMKmxBDz1dCiSUy3mlyGfT3BlbkFJ-6C-GkvXVeRnC6aCXVP7yDf3xc_kjNsKQwaBByej4oGMnrJ7TfqJIY3_dz9jUQpLgA'
 OpenAI.api_key = OPENAI_API_KEY
+# Variável para armazenar IDs de mensagens já processadas (idealmente, isso seria um banco de dados)
+processed_message_ids = set()
 
 @csrf_exempt
 def webhook(request):
     if request.method == 'POST':
-        incoming_message = json.loads(request.body.decode('utf-8'))
         try:
-            from_number = incoming_message['entry'][0]['changes'][0]['value']['messages'][0]['from']
-            message_body = incoming_message['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+            # Decodifica o corpo da mensagem recebida
+            incoming_message = json.loads(request.body.decode('utf-8'))
+
+            # Verifique se 'messages' está presente no JSON recebido
+            entry = incoming_message.get('entry', [])
+            if not entry:
+                print("Evento sem 'entry'. Ignorado.")
+                return JsonResponse({'status': 'ignored', 'message': "'entry' não encontrado"}, status=200)
+
+            changes = entry[0].get('changes', [])
+            if not changes:
+                print("Evento sem 'changes'. Ignorado.")
+                return JsonResponse({'status': 'ignored', 'message': "'changes' não encontrado"}, status=200)
+
+            value = changes[0].get('value', {})
+            if 'messages' not in value:
+                print("Evento sem 'messages'. Ignorado.")
+                return JsonResponse({'status': 'ignored', 'message': "'messages' não encontrado"}, status=200)
+
+            # Extraia as informações da mensagem
+            message = value['messages'][0]
+            from_number = message.get('from')
+            message_body = message.get('text', {}).get('body')
+
+            if not message_body:
+                raise KeyError("'body' não encontrado na mensagem")
 
             # Exibe a mensagem recebida no terminal
             print(f"Mensagem recebida de {from_number}: {message_body}")
 
-            # Determina o papel com base no conteúdo da mensagem
+            # Lógica para definir o papel
             if "criador de conteúdo" in message_body.lower():
                 role = "criador_de_conteudo"
             elif "acompanhamento profissional" in message_body.lower():
@@ -34,17 +59,17 @@ def webhook(request):
             else:
                 role = "atendente"  # Valor padrão
 
-            # Enviar a mensagem para o ChatGPT e obter a resposta
+            # Envia a mensagem para o ChatGPT e obtém a resposta
             response_message = get_chatgpt_response(message_body, role)
 
             # Enviar resposta automática
             send_message(from_number, response_message)
 
             return JsonResponse({'status': 'success'}, status=200)
+
         except (KeyError, IndexError) as e:
             print(f"Erro ao processar a mensagem: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
     return JsonResponse({'status': 'Method not allowed'}, status=405)
 
 def send_message(to_number, message):
@@ -70,20 +95,6 @@ def send_message(to_number, message):
         print(f"Erro ao enviar mensagem para {to_number}: {response.text}")
         return {'status': 'error', 'message': response.text}
 
-
-def handle_whatsapp_request(request):
-    if request.method == 'POST':
-        user_message = request.POST.get('message')
-        role = request.POST.get('role')  # Exemplo: 'atendente', 'criador_de_conteudo', etc.
-
-        # Obtenha a resposta da função de chat
-        chat_response = get_chatgpt_response(user_message, role)
-
-        return JsonResponse({"response": chat_response})
-
-    return JsonResponse({"error": "Invalid request method"}, status=400)
-
-
 def get_chatgpt_response(user_message, role):
     try:
         # Mapeamento de papéis para diferentes configurações do sistema
@@ -98,7 +109,7 @@ def get_chatgpt_response(user_message, role):
 
         # Chamada para o modelo OpenAI usando a nova interface
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Ajuste o modelo de acordo com a necessidade
+            model="gpt-4",  # Ajuste o modelo de acordo com a necessidade
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
@@ -109,8 +120,9 @@ def get_chatgpt_response(user_message, role):
             top_logprobs=2
         )
 
-        # Extração da resposta do modelo
-        chat_response = response['choices'][0]['message']['content'].strip()
+        # Extração da resposta correta da API
+        # O erro ocorre aqui, porque a resposta deve ser acessada diretamente via `.content` no atributo `choices`
+        chat_response = response.choices[0].message.content.strip()  # Corrigido para acessar o conteúdo corretamente
         return chat_response
 
     except Exception as e:
