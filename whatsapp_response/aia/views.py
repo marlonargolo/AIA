@@ -2,7 +2,8 @@ import json
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
-import openai
+from openai import OpenAI
+
 
 WHATSAPP_API_URL = 'https://graph.facebook.com/v20.0/418446388022428/messages'
 ACCESS_TOKEN = 'EAB1oK7ZAIcN8BOyxTE77as9qqFeZA4XSzXzTRnVUNZBrurQqjkoZAmwylf28Vyu8aoLyTF0Mh597VVmLK7gD1smyvEs4fdefhZAJKKk8MfNbdp6FNEo1ZBygA078d8R59EqZAvBK73h9PcSQGBO9ZBaUCvh9ZAZAlK0XQRDghAPl3ZAPUxyNNZA6op51GKwZBOZCKx9FVq9lUZD'
@@ -10,24 +11,13 @@ VERIFY_TOKEN = 'hsdfbvhbsd2458@hvb'
 
 #python manage.py runserver 0.0.0.0:8000 INICIAR O SERVIDOR
 # Configure sua chave de API da OpenAI
+client = OpenAI(api_key='sk-svcacct-za6uPwnTgcLBhsFQEMastiWByHViVQEaWERWpNtSkVmMTMKmxBDz1dCiSUy3mlyGfT3BlbkFJ-6C-GkvXVeRnC6aCXVP7yDf3xc_kjNsKQwaBByej4oGMnrJ7TfqJIY3_dz9jUQpLgA')
 OPENAI_API_KEY = 'sk-svcacct-za6uPwnTgcLBhsFQEMastiWByHViVQEaWERWpNtSkVmMTMKmxBDz1dCiSUy3mlyGfT3BlbkFJ-6C-GkvXVeRnC6aCXVP7yDf3xc_kjNsKQwaBByej4oGMnrJ7TfqJIY3_dz9jUQpLgA'
-openai.api_key = OPENAI_API_KEY
+OpenAI.api_key = OPENAI_API_KEY
 
 @csrf_exempt
 def webhook(request):
-    if request.method == 'GET':
-        # Verificação do token
-        hub_mode = request.GET.get('hub.mode')
-        hub_challenge = request.GET.get('hub.challenge')
-        hub_verify_token = request.GET.get('hub.verify_token')
-
-        if hub_mode == 'subscribe' and hub_verify_token == VERIFY_TOKEN:
-            return HttpResponse(hub_challenge, status=200)
-        else:
-            return HttpResponse('Error, invalid token', status=403)
-
-    elif request.method == 'POST':
-        # Processar a mensagem recebida via POST
+    if request.method == 'POST':
         incoming_message = json.loads(request.body.decode('utf-8'))
         try:
             from_number = incoming_message['entry'][0]['changes'][0]['value']['messages'][0]['from']
@@ -36,8 +26,16 @@ def webhook(request):
             # Exibe a mensagem recebida no terminal
             print(f"Mensagem recebida de {from_number}: {message_body}")
 
+            # Determina o papel com base no conteúdo da mensagem
+            if "criador de conteúdo" in message_body.lower():
+                role = "criador_de_conteudo"
+            elif "acompanhamento profissional" in message_body.lower():
+                role = "acompanhamento_profissional"
+            else:
+                role = "atendente"  # Valor padrão
+
             # Enviar a mensagem para o ChatGPT e obter a resposta
-            response_message = get_chatgpt_response(message_body)
+            response_message = get_chatgpt_response(message_body, role)
 
             # Enviar resposta automática
             send_message(from_number, response_message)
@@ -73,27 +71,47 @@ def send_message(to_number, message):
         return {'status': 'error', 'message': response.text}
 
 
-def get_chatgpt_response(user_message):
+def handle_whatsapp_request(request):
+    if request.method == 'POST':
+        user_message = request.POST.get('message')
+        role = request.POST.get('role')  # Exemplo: 'atendente', 'criador_de_conteudo', etc.
+
+        # Obtenha a resposta da função de chat
+        chat_response = get_chatgpt_response(user_message, role)
+
+        return JsonResponse({"response": chat_response})
+
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+
+def get_chatgpt_response(user_message, role):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4.0-",  # Alterado para gpt-3.5-turbo
+        # Mapeamento de papéis para diferentes configurações do sistema
+        roles = {
+            "atendente": "Você é um atendente virtual, pronto para responder perguntas de clientes e resolver suas dúvidas.",
+            "criador_de_conteudo": "Você é um criador de conteúdo criativo, capaz de produzir textos envolventes, posts para redes sociais, e artigos.",
+            "acompanhamento_profissional": "Você é um mentor especializado em acompanhamento profissional, oferecendo conselhos sobre carreira, produtividade e desenvolvimento pessoal."
+        }
+
+        # Escolhe o papel correto com base no parâmetro role
+        system_message = roles.get(role, "Você é um assistente útil.")
+
+        # Chamada para o modelo OpenAI usando a nova interface
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",  # Ajuste o modelo de acordo com a necessidade
             messages=[
-                {"role": "system", "content": "Você é um assistente útil."},
+                {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
             ],
             max_tokens=150,
             temperature=0.7,
+            logprobs=True,  # Incluindo logprobs para maior controle, se necessário
+            top_logprobs=2
         )
 
-        chat_response = response.choices[0].message['content'].strip()
+        # Extração da resposta do modelo
+        chat_response = response['choices'][0]['message']['content'].strip()
         return chat_response
 
-    except openai.error.AuthenticationError:
-        print("Erro de autenticação com a API da OpenAI. Verifique sua chave de API.")
-        return "Desculpe, ocorreu um erro de autenticação."
-    except openai.error.PermissionError:
-        print("Permissão negada para acessar o modelo especificado.")
-        return "Desculpe, não tenho permissão para acessar o modelo solicitado."
     except Exception as e:
-        print(f"Erro ao obter resposta do ChatGPT: {e}")
-        return "Desculpe, ocorreu um erro ao processar sua solicitação."
+        return f"Erro ao gerar resposta: {str(e)}"
