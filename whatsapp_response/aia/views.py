@@ -19,9 +19,17 @@ processed_message_ids = set()
 
 @csrf_exempt
 def webhook(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        verify_token = request.GET.get('hub.verify_token')
+        challenge = request.GET.get('hub.challenge')
+        
+        if verify_token == VERIFY_TOKEN:
+            return HttpResponse(challenge, status=200)
+        else:
+            return HttpResponse('Erro de verificação do token.', status=403)
+
+    elif request.method == 'POST':
         try:
-            # Decodifica o corpo da mensagem recebida
             incoming_message = json.loads(request.body.decode('utf-8'))
 
             # Verifique se 'messages' está presente no JSON recebido
