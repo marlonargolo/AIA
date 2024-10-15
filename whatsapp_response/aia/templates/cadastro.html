@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container" id="cadastro">
+        <h2>CADASTRE-SE</h2>
+        <p>Fill your information below or register with your social account.</p>
+        <form>
+            <input type="text" placeholder="Nome">
+            <input type="email" placeholder="Email">
+            <input type="password" placeholder="Password">
+            <label>
+                <input type="checkbox"> Agree with <a href="#">Termos & Condition</a>
+            </label>
+            <button class="btn">Sign up</button>
+        </form>
+        <p class="social-login-text">Or sing up with</p>
+        <div class="social-icons">
+            <img src="apple-icon.png" alt="Apple">
+            <img src="google-icon.png" alt="Google">
+            <img src="facebook-icon.png" alt="Facebook">
+        </div>
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+
+    <script src="{% static 'js/script.js'%}"></script>
+</body>
+</html>
