@@ -1,5 +1,6 @@
 from django.db import models
 
+<<<<<<< HEAD
 class Message(models.Model):
     sender = models.CharField(max_length=20)
     body = models.TextField()
@@ -8,3 +9,6 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.body} ({self.direction})"
+=======
+# Create your models here.
+>>>>>>> origin/master

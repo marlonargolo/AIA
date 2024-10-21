@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-qq-pq3$c5wd-)&3sf$elt4rh*e&lcjaubbq+ah^4s^u$2plylt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+<<<<<<< HEAD
 ALLOWED_HOSTS = ['*'] 
+=======
+ALLOWED_HOSTS = ['https://www.arquiteturadeia.com.br']  
+>>>>>>> origin/master
                 #'localhost', '127.0.0.1:4040','https://f447-177-128-97-18.ngrok-free.app '127.0.0.1', '0.0.0.0', 'localhost', '127.0.0.1:4040', 'https://4ac8-187-111-202-179.ngrok-free.app'
 
 
