@@ -2,7 +2,6 @@ import json
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
-<<<<<<< HEAD
 from openai import OpenAI 
 from django.shortcuts import render
 from .models import Message
@@ -10,14 +9,11 @@ from .models import Message
 WHATSAPP_API_URL = 'https://graph.facebook.com/v20.0/418446388022428/messages'
 ACCESS_TOKEN = 'EAB1oK7ZAIcN8BOZB4hMYto3ZBaVRicB2I2JaxzdrSBik6QvAp6iqHWZAGd7sNNnyN9yyhwCbqI204GNviZANTDXBNNJcTTT94ieYFBzkqg7yZCPvNKT7DaM5KipOcDeMgPYZCPRGAO7ZBXOxonnmVZANd7dvbg6q9h4jUWtoFUzeciUTGlu0JTQeUqNMeqs2xcQoRgZAAZD'
 VERIFY_TOKEN = 'token_@verify123123'
-=======
-from openai import OpenAI
 
 
 WHATSAPP_API_URL = 'https://graph.facebook.com/v20.0/418446388022428/messages'
 ACCESS_TOKEN = 'EAB1oK7ZAIcN8BO0Fuo1CAHaJcyZCSNuf9GUCGRiSqYUZAExPDp8dZBQq9ZCePauKn0CigXY8DPV44VffwLxUmJg4zHbxnEo6L1F8VIdOAF6SK5eZB1JKcJJX9JSPEsMTWVGoDHW0KKDqCKZAK3roNZBXodRZBpJg6LJe6nvKt11wO7ZBTy2xiaBbLJNnsTbe2jVmZBWu3UZD'
 VERIFY_TOKEN = 'hsdfbvhbsd2458@hvb'
->>>>>>> origin/master
 
 #python manage.py runserver 0.0.0.0:8000 INICIAR O SERVIDOR
 # Configure sua chave de API da OpenAI
@@ -29,11 +25,9 @@ processed_message_ids = set()
 
 @csrf_exempt
 def webhook(request):
-<<<<<<< HEAD
     if request.method == 'POST':
         try:
             # Decodifica o corpo da mensagem recebida
-=======
     if request.method == 'GET':
         verify_token = request.GET.get('hub.verify_token')
         challenge = request.GET.get('hub.challenge')
@@ -45,7 +39,6 @@ def webhook(request):
 
     elif request.method == 'POST':
         try:
->>>>>>> origin/master
             incoming_message = json.loads(request.body.decode('utf-8'))
 
             # Verifique se 'messages' está presente no JSON recebido
@@ -69,12 +62,9 @@ def webhook(request):
             from_number = message.get('from')
             message_body = message.get('text', {}).get('body')
 
-<<<<<<< HEAD
             # Salva a mensagem recebida
             Message.objects.create(sender=from_number, body=message_body, direction='received')
 
-=======
->>>>>>> origin/master
             if not message_body:
                 raise KeyError("'body' não encontrado na mensagem")
 
@@ -91,10 +81,7 @@ def webhook(request):
 
             # Envia a mensagem para o ChatGPT e obtém a resposta
             response_message = get_chatgpt_response(message_body, role)
-<<<<<<< HEAD
             Message.objects.create(sender='bot', body=response_message, direction='sent')
-=======
->>>>>>> origin/master
 
             # Enviar resposta automática
             send_message(from_number, response_message)
@@ -106,7 +93,6 @@ def webhook(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'status': 'Method not allowed'}, status=405)
 
-<<<<<<< HEAD
 
 def atendimento(request):
     return render(request, 'inicio.html')
@@ -115,8 +101,6 @@ def acompanhamento(request):
     return render(request, 'index.html')
 
 
-=======
->>>>>>> origin/master
 def send_message(to_number, message):
     headers = {
         'Authorization': f'Bearer {ACCESS_TOKEN}',
@@ -172,7 +156,6 @@ def get_chatgpt_response(user_message, role):
 
     except Exception as e:
         return f"Erro ao gerar resposta: {str(e)}"
-<<<<<<< HEAD
     
 
 def get_messages(request):
@@ -191,5 +174,4 @@ def login(request):
 
 def perfil(request):
     return render(request, 'perfil.html')
-=======
->>>>>>> origin/master
+
