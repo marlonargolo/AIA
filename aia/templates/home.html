@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css'%}">
+</head>
+<body>
+    <div class="container" id="home">
+        <h2>Bem-vindo à sua inteligencia AIA</h2>
+        <p>Esta é a página inicial da aplicação.</p>
+        <nav>
+            <ul>
+                <li><a href="#">Login</a></li>
+                <li><a href="{% url 'cadastro' %}">Cadastro</a></li>
+                <li><a href="{% url 'perfil' %}">Meu Perfil</a></li>
+                <li><a href="{% url 'chat' %}">chat aia</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

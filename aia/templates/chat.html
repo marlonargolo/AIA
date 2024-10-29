@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <style>
+        /* Estilos básicos para o chat */
+        .chat-container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .messages { border: 1px solid #ddd; padding: 10px; height: 300px; overflow-y: scroll; }
+        .message { margin: 10px 0; }
+        .message.sent { text-align: right; }
+        .input-container { display: flex; margin-top: 10px; }
+        .input-container input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        .input-container button { padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="messages" id="messages">
+        <!-- Mensagens aparecerão aqui -->
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="userMessage" placeholder="Digite sua mensagem...">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    // Função para carregar mensagens
+    async function loadMessages() {
+        const response = await fetch('/get_messages/');
+        const messages = await response.json();
+        const messagesDiv = document.getElementById('messages');
+        
+        messagesDiv.innerHTML = ''; // Limpa as mensagens existentes
+        messages.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${msg.direction}`;
+            messageDiv.textContent = `${msg.sender}: ${msg.body}`;
+            messagesDiv.appendChild(messageDiv);
+        });
+        
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rolagem automática para a última mensagem
+    }
+
+    // Função para enviar mensagem
+    async function sendMessage() {
+        const userMessage = document.getElementById('userMessage').value;
+        if (!userMessage.trim()) return;
+        
+        // Envia a mensagem para o backend
+        await fetch('/webhook/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMessage })
+        });
+        
+        document.getElementById('userMessage').value = ''; // Limpa o campo de entrada
+        loadMessages(); // Recarrega as mensagens
+    }
+
+    // Carrega as mensagens inicial e atualiza a cada 2 segundos
+    loadMessages();
+    setInterval(loadMessages, 2000);
+</script>
+
+</body>
+</html>

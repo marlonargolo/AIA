@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container" id="login">
+        <h2>Login</h2>
+        <p>Hi, Welcome back, you've been missed.</p>
+        <form>
+            <input type="email" placeholder="Email">
+            <input type="password" placeholder="Password">
+            <a href="#" class="forgot">Forgot password?</a>
+            <button class="btn">Sign in</button>
+        </form>
+        <p class="social-login-text">Or sing up with</p>
+        <div class="social-icons">
+            <img src="apple-icon.png" alt="Apple">
+            <img src="google-icon.png" alt="Google">
+            <img src="facebook-icon.png" alt="Facebook">
+        </div>
+        <a href="http://127.0.0.1:8000/accounts/google/login/?process=login">Login com Google</a>
+    </div>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>
